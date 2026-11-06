@@ -190,7 +190,8 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
     return bytes.map((b,i) => b ^ k[i % k.length] ^ ((i*31) & 255));
   }
   function encode(obj){
-    const bytes = xor(te.encode(JSON.stringify(obj)));
+    // Formato compacto: solo "quién regala|a quién" → enlace corto
+    const bytes = xor(te.encode(obj.g + "|" + obj.r));
     let s = ""; bytes.forEach(c => s += String.fromCharCode(c));
     return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
   }
@@ -199,7 +200,10 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
     while (str.length % 4) str += "=";
     const raw = atob(str);
     const bytes = Uint8Array.from(raw, c => c.charCodeAt(0));
-    return JSON.parse(td.decode(xor(bytes)));
+    const txt = td.decode(xor(bytes));
+    if (txt.charAt(0) === "{") return JSON.parse(txt); // enlaces antiguos
+    const [g, r] = txt.split("|");
+    return { g, r };
   }
 
   // ---------- Azar criptográfico ----------
@@ -289,7 +293,13 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
   function linkFor(l){ return location.origin + location.pathname + "?para=" + slug(l.name) + "#" + l.code; }
   function waText(l){
     const org = (state.org || "").trim();
-    return `¡Hola ${l.name}! ✨ ${org ? "Soy " + org + ". " : ""}Ya está hecho el sorteo del *Amigo Invisible de Reyes* de la familia.\n\nEste es tu enlace secreto, ábrelo cuando nadie te mire:\n${linkFor(l)}`;
+    const det = [];
+    if (state.budget.trim()) det.push(`• Presupuesto: ${state.budget.trim()}`);
+    if (state.date.trim()) det.push(`• Entrega: ${state.date.trim()}`);
+    if (state.msg.trim()) det.push(`• ${state.msg.trim()}`);
+    return `¡Hola ${l.name}! ✨ ${org ? "Soy " + org + ". " : ""}Ya está hecho el sorteo del *Amigo Invisible de Reyes* de la familia.\n\n`
+      + (det.length ? det.join("\n") + "\n\n" : "")
+      + `Este es tu enlace secreto, ábrelo cuando nadie te mire:\n${linkFor(l)}`;
   }
   function waHref(l){ return "https://api.whatsapp.com/send?text=" + encodeURIComponent(waText(l)); }
 
@@ -342,7 +352,7 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
     if (state.msg.trim()) extra.m = state.msg.trim();
     state.links = names.map((g,i) => ({
       name: g,
-      code: encode({ g, r: names[p[i]], ...extra })
+      code: encode({ g, r: names[p[i]] })
     }));
     state.sent = {};
     save(); renderResults(); window.scrollTo({top:0,behavior:"smooth"});
