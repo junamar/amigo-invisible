@@ -221,6 +221,7 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
   function save(){ try { localStorage.setItem(STORE, JSON.stringify(state)); } catch(e){} }
 
   // ---------- Router ----------
+  window.addEventListener("hashchange", () => location.reload());
   const hash = location.hash.slice(1);
   if (hash){ showReveal(hash); return; }
 
