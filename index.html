@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Amigo Invisible de Reyes</title>
 <meta name="robots" content="noindex">
+<meta name="description" content="Sorteo familiar del Amigo Invisible de Reyes. Abre tu enlace cuando nadie te mire.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Amigo Invisible de Reyes">
+<meta property="og:title" content="🎁 Amigo Invisible de Reyes · Sorteo familiar">
+<meta property="og:description" content="Tu enlace secreto: ábrelo cuando nadie te mire y descubre a quién te toca regalar.">
+<meta property="og:image" content="https://junamar.github.io/amigo-invisible/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#171a36">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -115,6 +125,8 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
 
       <div class="card">
         <h2>🎁 Detalles</h2>
+        <label for="org">Tu nombre (quien organiza)</label>
+        <input id="org" placeholder="Ej.: Juanje">
         <label for="budget">Presupuesto máximo</label>
         <input id="budget" placeholder="Ej.: 30 €">
         <label for="date">Día de la entrega</label>
@@ -229,7 +241,7 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
   let state = load() || {
     names: Array(8).fill(""),
     excls: [],
-    budget: "", date: "6 de enero", msg: "",
+    org: "", budget: "", date: "6 de enero", msg: "",
     links: null, sent: {}
   };
   $("organizer").classList.remove("hidden");
@@ -254,6 +266,7 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
         <button class="x" data-edel="${i}" aria-label="Quitar">×</button></div>`).join("");
   }
   function renderDetails(){
+    $("org").value = state.org || "";
     $("budget").value = state.budget; $("date").value = state.date; $("msg").value = state.msg;
   }
   function renderResults(){
@@ -270,11 +283,15 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
         </div>
       </div>`).join("");
   }
-  function linkFor(code){ return location.origin + location.pathname + "#" + code; }
-  function waText(l){
-    return `¡Hola ${l.name}! 🎁👑 Ya está hecho el sorteo del Amigo Invisible de Reyes.\n\nEste es tu enlace secreto, ábrelo cuando nadie te mire:\n${linkFor(l.code)}`;
+  function slug(n){
+    return n.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "tu";
   }
-  function waHref(l){ return "https://wa.me/?text=" + encodeURIComponent(waText(l)); }
+  function linkFor(l){ return location.origin + location.pathname + "?para=" + slug(l.name) + "#" + l.code; }
+  function waText(l){
+    const org = (state.org || "").trim();
+    return `¡Hola ${l.name}! ✨ ${org ? "Soy " + org + ". " : ""}Ya está hecho el sorteo del *Amigo Invisible de Reyes* de la familia.\n\nEste es tu enlace secreto, ábrelo cuando nadie te mire:\n${linkFor(l)}`;
+  }
+  function waHref(l){ return "https://api.whatsapp.com/send?text=" + encodeURIComponent(waText(l)); }
 
   function renderAll(){ renderNames(); renderExcls(); renderDetails(); renderResults(); }
   renderAll();
@@ -301,7 +318,7 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
     const d = e.target.dataset.edel;
     if (d !== undefined){ state.excls.splice(+d,1); save(); renderExcls(); }
   });
-  ["budget","date","msg"].forEach(k => $(k).addEventListener("input", e => { state[k] = e.target.value; save(); }));
+  ["org","budget","date","msg"].forEach(k => $(k).addEventListener("input", e => { state[k] = e.target.value; save(); }));
 
   $("drawBtn").onclick = () => {
     const err = $("err"); err.textContent = "";
@@ -319,10 +336,13 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
     const p = draw(names.length, banned);
     if (!p) { err.textContent = "Con esas exclusiones no hay ningún reparto posible. Quita alguna."; return; }
 
-    const extra = { b: state.budget.trim(), f: state.date.trim(), m: state.msg.trim() };
+    const extra = {};
+    if (state.budget.trim()) extra.b = state.budget.trim();
+    if (state.date.trim()) extra.f = state.date.trim();
+    if (state.msg.trim()) extra.m = state.msg.trim();
     state.links = names.map((g,i) => ({
       name: g,
-      code: encode({ g, r: names[p[i]], ...extra, s: randInt(1e9) })
+      code: encode({ g, r: names[p[i]], ...extra })
     }));
     state.sent = {};
     save(); renderResults(); window.scrollTo({top:0,behavior:"smooth"});
