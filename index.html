@@ -297,7 +297,7 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
     if (state.budget.trim()) det.push(`• Presupuesto: ${state.budget.trim()}`);
     if (state.date.trim()) det.push(`• Entrega: ${state.date.trim()}`);
     if (state.msg.trim()) det.push(`• ${state.msg.trim()}`);
-    return `¡Hola ${l.name}! ✨ ${org ? "Soy " + org + ". " : ""}Ya está hecho el sorteo del *Amigo Invisible de Reyes* de la familia.\n\n`
+    return `¡Hola ${l.name}! ✨ ${org ? "Soy " + org + ". " : ""}Ya está hecho el sorteo del *Amigo Invisible de Reyes* de La Bolera.\n\n`
       + (det.length ? det.join("\n") + "\n\n" : "")
       + `Este es tu enlace secreto, ábrelo cuando nadie te mire:\n${linkFor(l)}`;
   }
