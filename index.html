@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Amigo Invisible de Reyes</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#171a36;--bg2:#2c2f63;--card:#232756;--card2:#2b3066;--ink:#f7f2e6;--muted:#b8b5d6;
+  --gold:#f2c14e;--gold2:#e0a526;--red:#e4572e;--green:#3fb68b;--line:#3b4178;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+html{background:#171a36}
+body{
+  background:radial-gradient(ellipse at 50% -20%,var(--bg2),var(--bg) 65%) fixed;
+  color:var(--ink);font-family:Nunito,system-ui,sans-serif;min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.55;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 78% 12%,#fff 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 62% 34%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 28% 58%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 88% 66%,#fff 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 45% 82%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 8% 90%,#fff 50%,transparent 51%);
+}
+.wrap{position:relative;max-width:560px;margin:0 auto;padding:28px 16px 60px}
+header{text-align:center;margin-bottom:22px}
+.star{font-size:34px;filter:drop-shadow(0 0 12px rgba(242,193,78,.7))}
+h1{font-family:Fraunces,serif;font-weight:800;font-size:30px;line-height:1.1;margin:6px 0 6px;color:var(--gold)}
+.sub{color:var(--muted);margin:0;font-size:15px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.card h2{font-family:Fraunces,serif;font-weight:600;font-size:19px;margin:0 0 4px}
+.hint{color:var(--muted);font-size:13.5px;margin:0 0 12px}
+.row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+input,select,textarea{
+  width:100%;background:var(--card2);color:var(--ink);border:1px solid var(--line);
+  border-radius:12px;padding:11px 12px;font:inherit;font-size:16px;outline:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+textarea{resize:vertical;min-height:70px}
+label{display:block;font-weight:700;font-size:14px;margin:10px 0 6px}
+.x{flex:none;width:40px;height:44px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:20px;cursor:pointer}
+.x:hover{color:var(--red);border-color:var(--red)}
+.vs{flex:none;color:var(--muted);font-size:13px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;
+  border-radius:14px;padding:12px 16px;font:inherit;font-weight:800;font-size:15px;text-decoration:none;
+}
+.ghost{background:transparent;color:var(--gold);border:1px dashed var(--line);width:100%}
+.primary{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#2a1d00;width:100%;font-size:17px;padding:15px;box-shadow:0 8px 24px rgba(242,193,78,.25)}
+.wa{background:#25d366;color:#05301a}
+.soft{background:var(--card2);color:var(--ink);border:1px solid var(--line)}
+.danger{background:transparent;color:var(--muted);border:1px solid var(--line);width:100%}
+.err{color:#ff9b85;font-weight:700;font-size:14px;min-height:1em;margin:10px 0 0}
+.person{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.person:first-of-type{border-top:0}
+.pname{flex:1 1 120px;font-weight:800;font-size:17px}
+.pname small{display:block;font-weight:600;color:var(--green);font-size:12.5px}
+.pbtns{display:flex;gap:8px}
+.pbtns .btn{padding:10px 12px;font-size:14px}
+.note{background:rgba(242,193,78,.1);border:1px solid rgba(242,193,78,.35);border-radius:14px;padding:12px 14px;font-size:14px;color:#f3e2b5;margin-bottom:14px}
+.hidden{display:none!important}
+
+/* Revelado */
+.reveal{text-align:center;padding-top:30px}
+.gift{font-size:84px;display:inline-block;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-4deg)}}
+.hello{font-family:Fraunces,serif;font-size:28px;font-weight:800;margin:14px 0 6px}
+.who{
+  font-family:Fraunces,serif;font-weight:800;font-size:44px;color:var(--gold);margin:6px 0 4px;
+  text-shadow:0 0 30px rgba(242,193,78,.45);animation:pop .6s cubic-bezier(.2,1.6,.4,1) both;word-break:break-word;
+}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+.facts{display:grid;gap:10px;margin:22px 0;text-align:left}
+.fact{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.fact b{display:block;color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.confetti{position:fixed;top:-20px;width:9px;height:14px;border-radius:2px;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ====== VISTA DEL ORGANIZADOR ====== -->
+  <div id="organizer" class="hidden">
+    <header>
+      <div class="star">⭐</div>
+      <h1>Amigo Invisible<br>de Reyes</h1>
+      <p class="sub">El sorteo es secreto: ni siquiera quien lo organiza sabe quién regala a quién.</p>
+    </header>
+
+    <div id="setup">
+      <div class="card">
+        <h2>👑 Participantes</h2>
+        <p class="hint">Escribe el nombre de cada persona.</p>
+        <div id="names"></div>
+        <button class="btn ghost" id="addName">+ Añadir persona</button>
+      </div>
+
+      <div class="card">
+        <h2>💑 No se regalan entre sí</h2>
+        <p class="hint">Opcional. Por ejemplo, parejas o quien vive en la misma casa.</p>
+        <div id="excls"></div>
+        <button class="btn ghost" id="addExcl">+ Añadir pareja</button>
+      </div>
+
+      <div class="card">
+        <h2>🎁 Detalles</h2>
+        <label for="budget">Presupuesto máximo</label>
+        <input id="budget" placeholder="Ej.: 30 €">
+        <label for="date">Día de la entrega</label>
+        <input id="date" placeholder="Ej.: 6 de enero, comida en casa de los abuelos">
+        <label for="msg">Mensaje para todos (opcional)</label>
+        <textarea id="msg" placeholder="Ej.: ¡Nada de calcetines!"></textarea>
+      </div>
+
+      <button class="btn primary" id="drawBtn">🎲 Hacer el sorteo</button>
+      <p class="err" id="err"></p>
+    </div>
+
+    <div id="results" class="hidden">
+      <div class="note">🤫 Sorteo hecho. Envía a cada persona <b>su</b> enlace. No abras los enlaces de los demás o se acabó la sorpresa. Abre solo el tuyo.</div>
+      <div class="card">
+        <h2>📨 Enlaces secretos</h2>
+        <p class="hint">"WhatsApp" abre la app para que elijas el contacto. Se marca ✓ cuando lo envías.</p>
+        <div id="people"></div>
+      </div>
+      <button class="btn danger" id="redo">↺ Empezar un sorteo nuevo</button>
+    </div>
+  </div>
+
+  <!-- ====== VISTA DE CADA PARTICIPANTE ====== -->
+  <div id="reveal" class="reveal hidden">
+    <div class="gift">🎁</div>
+    <div class="hello" id="hello"></div>
+    <p class="sub" id="pre">Los Reyes Magos tienen un encargo secreto para ti.</p>
+    <div id="hiddenPart">
+      <p class="sub" style="margin:18px 0 22px">Asegúrate de que nadie mira la pantalla 👀</p>
+      <button class="btn primary" id="showBtn">✨ Descubrir a quién regalo</button>
+    </div>
+    <div id="shownPart" class="hidden">
+      <p class="sub" style="margin-top:20px">Te ha tocado regalar a…</p>
+      <div class="who" id="who"></div>
+      <div class="facts" id="facts"></div>
+      <p class="sub">Guarda este enlace por si quieres volver a mirarlo.<br>¡Y que no se te escape! 🤐</p>
+    </div>
+  </div>
+
+  <div id="invalid" class="reveal hidden">
+    <div class="gift">🐪</div>
+    <div class="hello">Enlace no válido</div>
+    <p class="sub">Parece que el enlace está incompleto. Pide a quien organiza que te lo vuelva a enviar.</p>
+  </div>
+
+  <footer>Hecho con cariño para la noche de Reyes ✨</footer>
+</div>
+
+<script>
+(function(){
+  const KEY = "melchor-gaspar-baltasar";
+  const STORE = "amigoInvisibleReyes.v1";
+  const te = new TextEncoder(), td = new TextDecoder();
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // ---------- Codificación del enlace (ofusca el contenido para que no se lea a simple vista) ----------
+  function xor(bytes){
+    const k = te.encode(KEY);
+    return bytes.map((b,i) => b ^ k[i % k.length] ^ ((i*31) & 255));
+  }
+  function encode(obj){
+    const bytes = xor(te.encode(JSON.stringify(obj)));
+    let s = ""; bytes.forEach(c => s += String.fromCharCode(c));
+    return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  }
+  function decode(str){
+    str = str.replace(/-/g,"+").replace(/_/g,"/");
+    while (str.length % 4) str += "=";
+    const raw = atob(str);
+    const bytes = Uint8Array.from(raw, c => c.charCodeAt(0));
+    return JSON.parse(td.decode(xor(bytes)));
+  }
+
+  // ---------- Azar criptográfico ----------
+  function randInt(n){
+    const a = new Uint32Array(1);
+    const lim = Math.floor(0x100000000 / n) * n;
+    do { crypto.getRandomValues(a); } while (a[0] >= lim);
+    return a[0] % n;
+  }
+  function shuffle(arr){
+    for (let i = arr.length - 1; i > 0; i--){
+      const j = randInt(i + 1); [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  // Permutación aleatoria uniforme entre las válidas: nadie se toca a sí mismo ni a su pareja excluida
+  function draw(n, banned){
+    for (let t = 0; t < 50000; t++){
+      const p = shuffle([...Array(n).keys()]);
+      let ok = true;
+      for (let i = 0; i < n; i++){
+        if (p[i] === i || banned.has(i + "|" + p[i])) { ok = false; break; }
+      }
+      if (ok) return p;
+    }
+    return null;
+  }
+
+  // ---------- Almacenamiento local (solo en el móvil de quien organiza) ----------
+  function load(){ try { return JSON.parse(localStorage.getItem(STORE)) || null; } catch(e){ return null; } }
+  function save(){ try { localStorage.setItem(STORE, JSON.stringify(state)); } catch(e){} }
+
+  // ---------- Router ----------
+  const hash = location.hash.slice(1);
+  if (hash){ showReveal(hash); return; }
+
+  // ---------- Vista organizador ----------
+  let state = load() || {
+    names: Array(8).fill(""),
+    excls: [],
+    budget: "", date: "6 de enero", msg: "",
+    links: null, sent: {}
+  };
+  $("organizer").classList.remove("hidden");
+
+  function cleanNames(){ return state.names.map(n => n.trim()).filter(Boolean); }
+
+  function renderNames(){
+    $("names").innerHTML = state.names.map((n,i) => `
+      <div class="row">
+        <input data-i="${i}" class="nameIn" value="${esc(n)}" placeholder="Persona ${i+1}" autocomplete="off">
+        <button class="x" data-del="${i}" aria-label="Quitar">×</button>
+      </div>`).join("");
+  }
+  function renderExcls(){
+    const opts = cleanNames();
+    const sel = (v, i, side) => `<select data-e="${i}" data-s="${side}">
+        <option value="">—</option>
+        ${opts.map(o => `<option ${o===v?"selected":""}>${esc(o)}</option>`).join("")}
+      </select>`;
+    $("excls").innerHTML = state.excls.map((e,i) => `
+      <div class="row">${sel(e[0],i,0)}<span class="vs">y</span>${sel(e[1],i,1)}
+        <button class="x" data-edel="${i}" aria-label="Quitar">×</button></div>`).join("");
+  }
+  function renderDetails(){
+    $("budget").value = state.budget; $("date").value = state.date; $("msg").value = state.msg;
+  }
+  function renderResults(){
+    const has = !!state.links;
+    $("setup").classList.toggle("hidden", has);
+    $("results").classList.toggle("hidden", !has);
+    if (!has) return;
+    $("people").innerHTML = state.links.map((l,i) => `
+      <div class="person">
+        <div class="pname">${esc(l.name)}${state.sent[i] ? "<small>✓ Enviado</small>" : ""}</div>
+        <div class="pbtns">
+          <button class="btn soft" data-copy="${i}">Copiar</button>
+          <a class="btn wa" data-wa="${i}" target="_blank" rel="noopener" href="${waHref(l)}">WhatsApp</a>
+        </div>
+      </div>`).join("");
+  }
+  function linkFor(code){ return location.origin + location.pathname + "#" + code; }
+  function waText(l){
+    return `¡Hola ${l.name}! 🎁👑 Ya está hecho el sorteo del Amigo Invisible de Reyes.\n\nEste es tu enlace secreto, ábrelo cuando nadie te mire:\n${linkFor(l.code)}`;
+  }
+  function waHref(l){ return "https://wa.me/?text=" + encodeURIComponent(waText(l)); }
+
+  function renderAll(){ renderNames(); renderExcls(); renderDetails(); renderResults(); }
+  renderAll();
+
+  // Eventos
+  $("names").addEventListener("input", e => {
+    if (e.target.classList.contains("nameIn")){ state.names[+e.target.dataset.i] = e.target.value; save(); }
+  });
+  $("names").addEventListener("change", () => renderExcls());
+  $("names").addEventListener("click", e => {
+    const d = e.target.dataset.del;
+    if (d !== undefined){ state.names.splice(+d,1); save(); renderNames(); renderExcls(); }
+  });
+  $("addName").onclick = () => {
+    state.names.push(""); save(); renderNames();
+    const ins = document.querySelectorAll(".nameIn"); ins[ins.length-1].focus();
+  };
+  $("addExcl").onclick = () => { state.excls.push(["",""]); save(); renderExcls(); };
+  $("excls").addEventListener("change", e => {
+    const i = e.target.dataset.e;
+    if (i !== undefined){ state.excls[+i][+e.target.dataset.s] = e.target.value; save(); }
+  });
+  $("excls").addEventListener("click", e => {
+    const d = e.target.dataset.edel;
+    if (d !== undefined){ state.excls.splice(+d,1); save(); renderExcls(); }
+  });
+  ["budget","date","msg"].forEach(k => $(k).addEventListener("input", e => { state[k] = e.target.value; save(); }));
+
+  $("drawBtn").onclick = () => {
+    const err = $("err"); err.textContent = "";
+    const names = cleanNames();
+    if (names.length < 3) { err.textContent = "Hacen falta al menos 3 personas."; return; }
+    const lower = names.map(n => n.toLowerCase());
+    if (new Set(lower).size !== names.length) { err.textContent = "Hay nombres repetidos. Añade una inicial para distinguirlos."; return; }
+
+    const banned = new Set();
+    for (const [a,b] of state.excls){
+      const ia = names.indexOf(a), ib = names.indexOf(b);
+      if (ia < 0 || ib < 0 || ia === ib) continue;
+      banned.add(ia+"|"+ib); banned.add(ib+"|"+ia);
+    }
+    const p = draw(names.length, banned);
+    if (!p) { err.textContent = "Con esas exclusiones no hay ningún reparto posible. Quita alguna."; return; }
+
+    const extra = { b: state.budget.trim(), f: state.date.trim(), m: state.msg.trim() };
+    state.links = names.map((g,i) => ({
+      name: g,
+      code: encode({ g, r: names[p[i]], ...extra, s: randInt(1e9) })
+    }));
+    state.sent = {};
+    save(); renderResults(); window.scrollTo({top:0,behavior:"smooth"});
+  };
+
+  $("people").addEventListener("click", async e => {
+    const c = e.target.dataset.copy, w = e.target.dataset.wa;
+    if (c !== undefined){
+      const l = state.links[+c];
+      try { await navigator.clipboard.writeText(waText(l)); e.target.textContent = "¡Copiado!"; }
+      catch(_) { prompt("Copia este mensaje:", waText(l)); }
+      state.sent[+c] = true; save();
+      setTimeout(renderResults, 900);
+    }
+    if (w !== undefined){ state.sent[+w] = true; save(); setTimeout(renderResults, 300); }
+  });
+
+  $("redo").onclick = () => {
+    if (!confirm("Si haces un sorteo nuevo, los enlaces que ya hayas enviado dejarán de valer y tendrás que mandarlos otra vez. ¿Seguro?")) return;
+    state.links = null; state.sent = {}; save(); renderAll();
+  };
+
+  // ---------- Vista participante ----------
+  function showReveal(code){
+    let d;
+    try { d = decode(code); if (!d.g || !d.r) throw 0; }
+    catch(e){ $("invalid").classList.remove("hidden"); return; }
+    document.title = "🎁 Tu amigo invisible";
+    $("reveal").classList.remove("hidden");
+    $("hello").textContent = `¡Hola, ${d.g}! 👑`;
+    $("showBtn").onclick = () => {
+      $("hiddenPart").classList.add("hidden");
+      $("pre").classList.add("hidden");
+      $("shownPart").classList.remove("hidden");
+      $("who").textContent = d.r;
+      const facts = [];
+      if (d.b) facts.push(["Presupuesto", d.b]);
+      if (d.f) facts.push(["Entrega", d.f]);
+      if (d.m) facts.push(["Nota", d.m]);
+      $("facts").innerHTML = facts.map(([k,v]) => `<div class="fact"><b>${k}</b>${esc(v)}</div>`).join("");
+      confetti();
+    };
+  }
+  function confetti(){
+    const colors = ["#f2c14e","#e4572e","#3fb68b","#7aa7ff","#ffffff"];
+    for (let i = 0; i < 70; i++){
+      const c = document.createElement("div");
+      c.className = "confetti";
+      c.style.left = Math.random()*100 + "vw";
+      c.style.background = colors[i % colors.length];
+      c.style.animationDuration = (2.2 + Math.random()*2) + "s";
+      c.style.animationDelay = (Math.random()*0.6) + "s";
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 5000);
+    }
+  }
+})();
+</script>
+</body>
+</html>
