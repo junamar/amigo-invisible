@@ -146,6 +146,7 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
         <textarea id="msg" placeholder="Ej.: ¡Nada de calcetines!"></textarea>
       </div>
 
+      <div class="note">📋 Beta: escribe los nombres <b>igual</b> que en la pestaña <i>Participantes</i> del Google Sheet (tildes y mayúsculas dan igual).</div>
       <button class="btn primary" id="drawBtn">🎲 Hacer el sorteo</button>
       <p class="err" id="err"></p>
     </div>
@@ -207,6 +208,13 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
   const STORE = "amigoInvisibleReyes.beta";
   // Dirección de la "Aplicación web" de Google Apps Script. Vacía = sin ideas de regalo.
   const WISHES_URL = "https://script.google.com/macros/s/AKfycbw1PdVwr3RBTGpcRMbNPYusMzXAK0hpjT4Fn0jjiMrzgHyd7h5wH4Mv9Gfq0RYZCS8V/exec";
+  const ERRORS = {
+    no_participante: "Tu nombre no está en la lista de participantes. Avisa a quien organiza.",
+    enlace_no_valido: "Este enlace no puede ver ni cambiar las ideas. Pide a quien organiza que te lo reenvíe.",
+    faltan_datos: "Este enlace es de una versión anterior y no puede usar las ideas de regalo."
+  };
+  class WishError extends Error {}
+  let AUTH = { clave: "", tok: "" };
   const te = new TextEncoder(), td = new TextDecoder();
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -218,7 +226,7 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
   }
   function encode(obj){
     // Formato compacto: solo "quién regala|a quién" → enlace corto
-    const bytes = xor(te.encode(obj.g + "|" + obj.r));
+    const bytes = xor(te.encode(obj.g + "|" + obj.r + (obj.t ? "|" + obj.t : "")));
     let s = ""; bytes.forEach(c => s += String.fromCharCode(c));
     return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
   }
@@ -229,8 +237,8 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
     const bytes = Uint8Array.from(raw, c => c.charCodeAt(0));
     const txt = td.decode(xor(bytes));
     if (txt.charAt(0) === "{") return JSON.parse(txt); // enlaces antiguos
-    const [g, r] = txt.split("|");
-    return { g, r };
+    const [g, r, t] = txt.split("|");
+    return { g, r, t };
   }
 
   // ---------- Azar criptográfico ----------
@@ -314,6 +322,15 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
         </div>
       </div>`).join("");
   }
+  // Clave secreta por persona: se reutiliza en sorteos nuevos para no bloquear a nadie
+  function tokenFor(name){
+    const k = slug(name);
+    if (!state.tokens[k]){
+      const a = new Uint8Array(8); crypto.getRandomValues(a);
+      state.tokens[k] = Array.from(a, x => "abcdefghijkmnpqrstuvwxyz23456789"[x % 32]).join("");
+    }
+    return state.tokens[k];
+  }
   function slug(n){
     return n.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "tu";
   }
@@ -377,9 +394,10 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
     if (state.budget.trim()) extra.b = state.budget.trim();
     if (state.date.trim()) extra.f = state.date.trim();
     if (state.msg.trim()) extra.m = state.msg.trim();
+    state.tokens = state.tokens || {};
     state.links = names.map((g,i) => ({
       name: g,
-      code: encode({ g, r: names[p[i]] })
+      code: encode({ g, r: names[p[i]], t: tokenFor(g) })
     }));
     state.sent = {};
     save(); renderResults(); window.scrollTo({top:0,behavior:"smooth"});
@@ -434,14 +452,16 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
   async function loadWishes(){
     const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 12000);
     try {
-      const r = await fetch(WISHES_URL + (WISHES_URL.includes("?") ? "&" : "?") + "t=" + Date.now(), {signal: ctl.signal});
+      const q = new URLSearchParams({ clave: AUTH.clave, tok: AUTH.tok, ts: Date.now() });
+      const r = await fetch(WISHES_URL + "?" + q, {signal: ctl.signal});
       const j = await r.json();
-      if (!j.ok) throw new Error("respuesta");
+      if (!j.ok) throw new WishError(j.error || "error");
       return j.ideas || {};
     } finally { clearTimeout(t); }
   }
   function initWishes(d){
     const them = slug(d.r), me = slug(d.g);
+    AUTH = { clave: me, tok: d.t || "" };
     $("theirTitle").textContent = `🎁 Ideas de regalo de ${d.r}`;
     if (!WISHES_URL){ $("theirWish").classList.add("hidden"); $("myWish").classList.add("hidden"); return; }
 
@@ -455,9 +475,12 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
         $("theirMeta").textContent = "";
       }
     };
-    const fail = () => {
-      $("theirText").innerHTML = `<span class="empty">Las ideas de regalo no están disponibles ahora mismo. Inténtalo más tarde.</span>`;
+    const fail = e => {
+      const msg = (e instanceof WishError && ERRORS[e.message]) || "Las ideas de regalo no están disponibles ahora mismo. Inténtalo más tarde.";
+      $("theirText").innerHTML = `<span class="empty">${esc(msg)}</span>`;
+      if (e instanceof WishError && ERRORS[e.message]) $("myWish").classList.add("hidden");
     };
+    if (!d.t){ fail(new WishError("faltan_datos")); return; }
 
     loadWishes().then(ideas => {
       showTheirs(ideas);
@@ -471,10 +494,11 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:26px}
       const texto = $("myText").value.trim();
       try {
         // text/plain evita la petición previa CORS que Apps Script no admite
-        await fetch(WISHES_URL, { method: "POST", body: JSON.stringify({ clave: me, nombre: d.g, texto }) })
-          .then(r => r.json()).then(j => { if (!j.ok) throw new Error(j.error || "error"); });
+        await fetch(WISHES_URL, { method: "POST", body: JSON.stringify({ clave: me, tok: AUTH.tok, nombre: d.g, texto }) })
+          .then(r => r.json()).then(j => { if (!j.ok) throw new WishError(j.error || "error"); });
         st.className = "status ok"; st.textContent = "Guardado ✓";
       } catch(e){
+        if (e instanceof WishError && ERRORS[e.message]){ st.className = "status bad"; st.textContent = ERRORS[e.message]; btn.disabled = false; return; }
         // Si la respuesta no se puede leer, comprobamos si se guardó igualmente
         try {
           const ideas = await loadWishes();
